@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Home from './components/Home';
+import Auth from './components/Auth';
 
 
 function App() {
@@ -12,6 +13,17 @@ function App() {
               path='/chat'
               element={<Home/>}
             />
+
+            <Route 
+            path='/register' 
+            element={<Auth/>}
+            />
+            
+            <Route 
+            path='/login' 
+            element={<Auth/>}
+            />
+
           </Routes>
         </div>
       </Router>
