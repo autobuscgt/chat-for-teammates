@@ -1,13 +1,13 @@
 import {  useState } from 'react';
 import { Link } from 'react-router-dom';
-import {jwtDecode} from 'jwt-decode';
+// import {jwtDecode} from 'jwt-decode';
 
 function Home() {
     const [id, setID] = useState('');
 
-    const token = localStorage.getItem('token');
-    const decoded = jwtDecode(token);
-    console.log(decoded);
+    // const token = localStorage.getItem('token');
+    // const decoded = jwtDecode(token);
+    // console.log(decoded);
 
     return (
         <div className="main-container">

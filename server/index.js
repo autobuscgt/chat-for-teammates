@@ -23,14 +23,20 @@ const io = new Server(server, {
 
 const roomMessages = new Map();
 
+const users = [];
+const rooms = [];
+
 io.on('connection', (socket) => { 
     console.log('user connected');
-    
+    users.push(socket.id);
+    socket.emit('rooms list', Array.from(roomMessages.keys()));
+
     socket.on('join', (room) => {
         socket.join(room);
-        console.log(`User joined room: ${room}`);
+        console.log(`user ${socket.id} joined room: ${room}`);
 
         if (roomMessages.has(room)) {
+            rooms.push(room);
             socket.emit('chat message', roomMessages.get(room));
         } else {
             socket.emit('chat message', []);
@@ -39,6 +45,7 @@ io.on('connection', (socket) => {
         socket.emit('message', {
             message: `Приветствую в комнате ${room}`
         });
+
     });
 
     socket.on('chat message', async (msgData) => {
@@ -58,6 +65,10 @@ io.on('connection', (socket) => {
         currentMessages.push(newMessage);
         roomMessages.set(room, currentMessages);
         io.to(room).emit('chat message', currentMessages);
+    });
+
+    socket.on('get rooms', () => {
+        socket.emit('rooms list', Array.from(roomMessages.keys()));
     });
 
     socket.on('disconnect', () => {
