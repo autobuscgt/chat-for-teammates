@@ -1,3 +1,3 @@
-const $host = 'http://localhost:3000';
-const $authHost = 'http://localhost:3000';
+const $host = 'http://localhost:7000';
+const $authHost = 'http://localhost:7000';
 

@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useLocation } from 'react-router-dom'
 import { LOGIN_ROUTE } from "../utils/consts";
-import axios from 'axios'
 import { login, register } from "../http/userAPI";
-
 
 function Auth() {
 const [userLogin, setUserLogin] = useState('');
@@ -26,7 +24,7 @@ const handleSubmit = async() => {
 
     return (
         <div className="main-container">
-            <div className="auth-container">
+            <div className="adaptive-container">
                 {isLogin ? <h1>Авторизация</h1> : <h1>Регистрация</h1> }
                     <div className="auth-middle-inner">
                     <input 
