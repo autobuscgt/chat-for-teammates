@@ -106,11 +106,14 @@ body{
     color: #f9f9f9;
 }
 
+
+
 .text-container{
     border-radius: 15px;
     overflow-x: hidden; 
     width: 92%;
-    max-height: 80vh;
+    max-height: 75vh;
+    margin: 10px 0px;
     background-color: var(--primary-color);
     /* background-color: #f9f9f9; */
     flex: 1;
@@ -150,8 +153,29 @@ body{
     width: 100%;
 }
 
-.message-card:nth-child(odd){
+.messages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+}
+
+
+.message-card.yes{
+    margin-left: auto;
+    color: #f9f9f9;
+    background-color: var(--deep-blue);
+}
+.message-card.no{
+    margin-right: auto;
     background-color: #f9f9f928;
+}
+
+.error{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: rgb(255, 67, 67);
 }
 
 .message-card li[data="text"]{
@@ -184,7 +208,7 @@ body{
 
 .send-btn{
     right: 25px;
-    top: 25px;
+    top: 27px;
     background-color: transparent;
     position: absolute;
     width: 45px;
@@ -202,9 +226,11 @@ body{
     opacity: 0.7;
     cursor: pointer;
 }
-.send-message-container input{
+.text-input{
     font-size: 1rem;
+    padding: 5px;
     width: 100%;
+    overflow-x: scroll;
     height: 100%; 
     border-radius: 500px;
     background-color: #1E1E1E;
@@ -212,6 +238,7 @@ body{
     border: 1px solid rgb(100, 100, 100);
     text-align: center;
 }
+
 .container-for-sending-messages{
     position: relative;
     background-color: var(--primary-color);
@@ -224,9 +251,8 @@ body{
     display: flex;
     justify-content: center;
 }
+
 .chat-header{
-    
-    margin: 10px 0px;
     width: 100%;
     justify-self: unset;
 }
@@ -236,8 +262,10 @@ body{
     text-transform: uppercase;
     border-bottom: 3px solid var(--deep-blue);
     text-indent: 15px;
+    
     font-family: MontserratMedium;
     padding: 10px 0px;
+    
     
 }
 
@@ -262,7 +290,7 @@ body{
     flex-direction: column;
     align-items: center;
     background-color: #1e1e1e;
-    height: 100%;
+    height: 100vh;
     width: 100%;
 }
 
@@ -292,26 +320,6 @@ body{
     padding: 5px;
     border-radius: 600px;
 }
-/* .navigation-bar-btn[data-image="Contacts"]{
-    background-image: url('../public/images/contacts.png');
-    background-position: center;
-    background-size: contain;
-    background-repeat: no-repeat;
-}
-
-.navigation-bar-btn[data-image="Chats"]{
-    background-image: url('../public/images/chats.png');
-    background-position: center;
-    background-size: contain;
-    background-repeat: no-repeat;
-}
-
-.navigation-bar-btn[data-image="Settings"]{
-    background-image: url('../public/images/profile.png');
-    background-position: center;
-    background-size: contain;
-    background-repeat: no-repeat;
-} */
 
 .mobile-content{
     width: 100%;
@@ -332,10 +340,12 @@ body{
     display: flex;
     padding: 25px;
 }
+
 .contacts-containers li:first-child{
     border-bottom:none;
     margin-bottom: 15px;
 }
+
 .contacts-containers li{
     text-decoration: none;
     list-style: none;
@@ -344,6 +354,7 @@ body{
     border-bottom: 1px solid #494949;
     width: 100%;
 }
+
 .contacts-containers ul{
     width: 100%;
 }
@@ -357,7 +368,6 @@ body{
     border-radius: 600px;
     text-indent: 1rem;
 }
-
 
 .back-button{
     padding: 0px 10px;
@@ -373,6 +383,7 @@ body{
     left: 0;
     transition: 0.2s;
 }
+
 .back-button:hover{
     opacity: 0.7;
     transition: 0.2s;
@@ -383,6 +394,7 @@ body{
         width: 700px;
     }
 }
+
 @media screen and (max-width: 480px) {
     .container-for-sending-messages{
         width: 100%;
@@ -391,5 +403,8 @@ body{
     .room-header{
         text-align: center;
         text-indent: 0px;
+    }
+    .text-container{
+        max-height: 90vh;
     }
 }

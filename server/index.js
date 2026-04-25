@@ -8,6 +8,8 @@ const http = require('http');
 const { Server } = require('socket.io');
 const models = require('./models/index');
 const router = require('./routes/index');
+const jwt = require('jsonwebtoken');
+
 
 app.use(express.json());
 app.use(cors({ origin: '*' }));
@@ -22,19 +24,51 @@ const io = new Server(server, {
 })
 
 const roomMessages = new Map();
-
 const users = [];
 const rooms = [];
+const roomUsers = {};
+
+
+io.use((socket, next) => {
+    const token = socket.handshake.auth.token;
+    if (!token) {
+        return next(new Error('Authentication error'));
+    }
+    
+    try {
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        socket.user = decoded;
+        next();
+
+    } catch (err) {
+        next(new Error('Authentication error'));
+    }
+});
 
 io.on('connection', (socket) => { 
     console.log('user connected');
-    users.push(socket.id);
+    console.log(`user ${socket.user.login} connected`);
+    
     socket.emit('rooms list', Array.from(roomMessages.keys()));
 
-    socket.on('join', (room) => {
+    socket.on('join', ({room, user}) => {
         socket.join(room);
+        socket.room = room;
         console.log(`user ${socket.id} joined room: ${room}`);
+        
+        if (!roomUsers[room]) {
+        roomUsers[room] = new Map();
+        }
 
+        roomUsers[room].set(socket.id, {
+            id: socket.user.id,
+            login: socket.user.login
+        });
+
+        if (!roomUsers[room]) {
+            roomUsers[room] = new Map();
+        }
+        
         if (roomMessages.has(room)) {
             rooms.push(room);
             socket.emit('chat message', roomMessages.get(room));
@@ -49,7 +83,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('chat message', async (msgData) => {
-        const { text, room, timestamp } = msgData;
+        const { text, room, timestamp, user, userId } = msgData;
         
         if (!roomMessages.has(room)) {
             roomMessages.set(room, []);
@@ -58,13 +92,16 @@ io.on('connection', (socket) => {
         const newMessage = {
             text: text,
             timestamp: timestamp,
-            user: socket.id 
+            userId: socket.user.id,
+            user: socket.user.login
         };
         
         const currentMessages = roomMessages.get(room);
         currentMessages.push(newMessage);
         roomMessages.set(room, currentMessages);
+
         io.to(room).emit('chat message', currentMessages);
+        io.to(room).emit('users in room', Array.from(roomUsers[room].values()));
     });
 
     socket.on('get rooms', () => {

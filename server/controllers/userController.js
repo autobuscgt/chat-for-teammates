@@ -19,7 +19,11 @@ class UserController {
                 return res.status(401).json({ message: 'Неправильный пароль' });
             }
             const token = generateJWT(candidate.login, candidate.role);
-            return res.status(200).json({ token });
+            return res.status(200).json({ token, user: {                 
+                id: candidate.id,
+                login: candidate.login,
+                role: candidate.role} 
+            });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Server error' });
@@ -36,7 +40,11 @@ class UserController {
             const hashedPassword = await bcrypt.hash(password, parseInt(process.env.PASSWORD_SALT) || 8);
             const user = await User.create({ login, password: hashedPassword, role: role || 'USER' });
             const token = generateJWT(user.login, user.role);
-            return res.status(200).json({ token });
+            return res.status(200).json({ token, user:{
+                id: user.id,
+                login: user.login,
+                role: user.role
+            } });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Server error' });

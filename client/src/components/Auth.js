@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { LOGIN_ROUTE } from "../utils/consts";
 import { login, register } from "../http/userAPI";
 
@@ -9,6 +9,8 @@ const [userPassword, setUserPassword] = useState('');
 const location = useLocation();
 const isLogin = location.pathname === LOGIN_ROUTE;
 
+const navigate = useNavigate('')
+
 const userData = {
     login: userLogin,
     password: userPassword
@@ -16,9 +18,16 @@ const userData = {
 
 const handleSubmit = async() => {
     if(isLogin) {
-        login(userData)
+        const data = await login(userData)
+        if(data.token) {
+            navigate('/join')
+        }
     } else {
-        register(userData)
+        const data = await register(userData)
+
+        if(data.token) {
+            navigate('/join')
+        }
     }
 }
 
