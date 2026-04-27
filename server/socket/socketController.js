@@ -88,7 +88,7 @@ class SocketConnection {
 
     async handleChatMessage(socket, msgData, io) {
         const { text, room, timestamp } = msgData;
-        
+        console.log(`Сообщение: ${text}, Комната: ${room}, Пользователь: ${socket.user.login}`);
         if (!roomMessages.has(room)) {
             roomMessages.set(room, []);
         }
