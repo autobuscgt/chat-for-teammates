@@ -9,6 +9,54 @@ body{
     background-color: var(--primary-color);
 }
 
+.image-preview-container{
+    max-width: 300px;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+.image-preview{
+    width: 100%;
+}
+.image-preview img{
+    width: 100%;
+}
+.image-preview-info{
+    width: 100%;
+}
+
+.cancel-image-btn{
+    width: 100%;
+    background-color: var(--deep-blue);
+    color: white;
+    border: 0px;
+    padding: 10px;
+    font-size: 1rem;
+}
+
+.quick-emojis{
+    border-radius: 600px;
+    width: 90%;
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 5px;
+    display: flex;
+}
+.quick-emojis button{
+    font-size: 1.5rem;
+    background-color: transparent;
+    border: 0px;
+    border-right: 1px solid white;
+    flex: 1;
+}
+
+.quick-emojis button:last-child{
+    border: 0px;
+}
+
+.image-upload-btn{
+    position: absolute;
+    left: 28px;
+    bottom: 40px;
+}
+
 @font-face {
     font-family: Roboto;
     src: url('./assets/fonts/Roboto.ttf');
@@ -109,11 +157,12 @@ body{
 
 
 .text-container{
-    border-radius: 15px;
+  
     overflow-x: hidden; 
     width: 92%;
     max-height: 75vh;
     margin: 10px 0px;
+    padding: 15px 0px;
     background-color: var(--primary-color);
     /* background-color: #f9f9f9; */
     flex: 1;
@@ -121,17 +170,19 @@ body{
 }
 
 .greet-msg{
+    border-radius: 600px;
     padding: 15px;
-    background-color: #276bb9;
+    background-color: var(--deep-blue);
 }
 
 .message-card{
     display: flex;
     padding: 15px;
     background-color: rgba(0, 0, 0, 0.1);
-    margin: 10px;
-    border-radius: 5px;
+    margin: 0px;
+    border-radius: 15px;
     font-size: 1rem;
+
     text-wrap:initial;
     flex-wrap: wrap;
     overflow-x: hidden;
@@ -156,7 +207,7 @@ body{
 .messages-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 5px;
     padding: 10px;
 }
 
@@ -197,8 +248,25 @@ body{
     align-items: center;
     justify-content: left;
     flex-wrap: wrap;
-    padding-left: 0px;
     list-style: none;
+}
+
+.quick-emoji{
+    cursor: pointer;
+    height: 100%;
+    transition: 0.2s;
+}
+.quick-emoji:hover{
+    background-color:rgba(255, 255, 255, 0.2);
+    transition: 0.2s;
+}
+.quick-emoji:hover:first-child{
+    border-top-left-radius: 25px;
+    border-bottom-left-radius: 25px;
+}
+.quick-emoji:hover:last-child{
+    border-top-right-radius: 25px;
+    border-bottom-right-radius: 25px;
 }
 
 .send-message-container{
@@ -239,19 +307,36 @@ body{
     text-align: center;
 }
 
+.message-image img{
+    border-radius: 15px;
+}
+.message-image{
+    padding: 15px;
+}
+
 .container-for-sending-messages{
     position: relative;
-    background-color: var(--primary-color);
     bottom: 0px;
     height: 100px;
     opacity: 0.7;
-    padding: 15px;
     align-items: center;
     width: 90%;
     display: flex;
     justify-content: center;
 }
-
+.messages-footer{
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+    padding: 10px;
+    position: fixed;
+    background-image: url('./assets/images/glass.png');
+    bottom: 0;
+    width: 75%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    backdrop-filter: blur(10px);
+}
 .chat-header{
     width: 100%;
     justify-self: unset;
@@ -276,13 +361,20 @@ body{
 .room-link{
     color: white;
     cursor: pointer;
-    background-color: transparent;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: 0.2s;
+    border-radius: 600px;
+    margin: 5px 0px;
     border: 0px;
     padding: 15px;
     text-align: left;
-    font-size: 1rem;
+    font-size: 1.2rem;
     width: 100%;
     height: 100%;
+}
+.room-link:hover{
+    background-color: rgba(255, 255, 255, 0.3);
+    transition: 0.2s;
 }
 
 .chat-container{
@@ -351,7 +443,7 @@ body{
     list-style: none;
     padding-left: 0px;
     line-height: 50px;
-    border-bottom: 1px solid #494949;
+    /* border-bottom: 1px solid #494949; */
     width: 100%;
 }
 
@@ -398,7 +490,10 @@ body{
 @media screen and (max-width: 480px) {
     .container-for-sending-messages{
         width: 100%;
-        background-color: transparent;
+    }
+    .messages-footer{
+        position: relative;
+        width: 100%;
     }
     .room-header{
         text-align: center;
@@ -406,5 +501,11 @@ body{
     }
     .text-container{
         max-height: 90vh;
+    }
+}
+
+@media screen and (max-width: 800) {
+    .container-for-sending-messages-outer{
+        flex-direction: column;
     }
 }

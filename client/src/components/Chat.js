@@ -11,14 +11,17 @@ function ChatComponent() {
     const { user, loading } = useAuth();
     const { search } = useLocation();
     const { closeChat } = useNavigation();
+
     const [params, setParams] = useState(null);
     const [messages, setMessages] = useState([]);
     const [greet, setGreet] = useState('');
     const [send, setSend] = useState('');
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+
     const socketRef = useRef(null);
     const messagesEndRef = useRef(null);
     const prevMessagesLengthRef = useRef(0);
-    const isFirstLoadRef = useRef(true);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -27,12 +30,10 @@ function ChatComponent() {
     useEffect(() => {
         if (messages.length > prevMessagesLengthRef.current) {
             scrollToBottom();
-            isFirstLoadRef.current = false; 
         }
         prevMessagesLengthRef.current = messages.length;
     }, [messages]);
 
-    // Подключение socket с токеном
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
@@ -44,13 +45,27 @@ function ChatComponent() {
                 const formattedMessage = msgs.map(msg => ({
                     text: msg.text,
                     timestamp: new Date(msg.timestamp).toLocaleString(),
-                    user: msg.user
+                    user: msg.user,
+                    userId: msg.userId,
+                    imageUrl: msg.imageUrl,
+                    type: msg.type || 'text'
                 }));
                 setMessages(formattedMessage);
             });
             
             socketRef.current.on('message', (msg) => {
                 setGreet(msg);
+            });
+
+            socketRef.current.on('image uploaded', (data) => {
+                console.log('Image uploaded successfully:', data);
+                setSelectedImage(null);
+                setImagePreview(null);
+            });
+
+            socketRef.current.on('error', (error) => {
+                console.error('Socket error:', error);
+                alert(error.message);
             });
         }
         
@@ -61,7 +76,6 @@ function ChatComponent() {
         };
     }, []);
 
-    // Отправка события join
     useEffect(() => {
         const searchLocation = Object.fromEntries(new URLSearchParams(search));
         setParams(searchLocation);
@@ -78,8 +92,55 @@ function ChatComponent() {
         }
     }, [search, user]);
 
+    const handleCommand = (command, args) => {
+        switch(command) {
+            case '/clear':
+                setMessages([]);
+                socketRef.current.emit('clear chat', {
+                    room: params?.room,
+                    userId: user.id
+                });
+                return true;
+                
+            case '/help':
+                const helpMessage = {
+                    text: 'Доступные команды:\n/help - показать это сообщение\n/clear - очистить чат\n/users - показать список пользователей\n',
+                    timestamp: new Date().toLocaleString(),
+                    user: 'System',
+                    userId: 'system',
+                    type: 'text'
+                };
+                setMessages(prev => [...prev, helpMessage]);
+                return true;
+                
+            case '/users':
+                socketRef.current.emit('get users', params?.room);
+                return true;
+
+            case '/durov':
+                // socketRef.current.emit('durov');
+                return true;
+            default:
+                return false;
+        }
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        if (send.startsWith('/')) {
+            const [command, ...argsArray] = send.split(' ');
+            const args = argsArray.join(' ');
+            const handled = handleCommand(command, args);
+            
+            if (handled) {
+                setSend('');
+                return;
+            }
+        }
+        if (selectedImage) {
+            sendImage();
+        }
         if (send.trim() && socketRef.current && user) {
             socketRef.current.emit('chat message', {
                 text: send,
@@ -91,6 +152,70 @@ function ChatComponent() {
             setSend('');
         }
     }
+
+    const fileToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    };
+
+    const sendImage = async () => {
+        if (!selectedImage) return;
+
+        try {
+            const base64Image = await fileToBase64(selectedImage);
+            setTimeout(()=>{
+                socketRef.current.emit('chat image', {
+                    file: base64Image,
+                    metadata: {
+                        room: params?.room,
+                        timestamp: new Date().toISOString(),
+                        userId: user.id,
+                        user: user.nickname || user.login,
+                        filename: selectedImage.name,
+                        fileType: selectedImage.type
+                    }
+                });
+            }, 1000);
+        } catch (error) {
+            console.error('Error sending image:', error);
+            alert('Ошибка при отправке изображения');
+        }
+    };
+
+    const handleImageSelect = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Пожалуйста, выберите изображение');
+            return;
+        }
+
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert('Размер изображения не должен превышать 5MB');
+            return;
+        }
+
+        setSelectedImage(file);
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            setImagePreview(e.target.result);
+        };
+        reader.readAsDataURL(file);
+
+        e.target.value = '';
+    };
+
+    const cancelImage = () => {
+        setSelectedImage(null);
+        setImagePreview(null);
+    };
 
     const isMyMessage = (msg) => {
         return msg.userId === user?.id || msg.user === user?.login;
@@ -114,16 +239,27 @@ function ChatComponent() {
             </div>
             
             <div className="text-container">
-                <div className="greet-msg">{greet.message}</div>
+                <div className="greet-msg">{greet.message}!</div>
                 {messages.length === 0 ? 
                     <div className="no-messages">Нет сообщений. Напишите первым!</div>
                     : 
-                    <div className={`messages-container`}>
+                    <div className="messages-container">
                         {messages.map((msg, index) => (
                             <div key={index} className={`message-card ${isMyMessage(msg) ? 'yes' : 'no'}`}>
                                 <ul>
                                     <li>{msg.user}</li>
-                                    <li data="text">{msg.text || msg}</li>
+                                    {msg.type === 'image' && msg.imageUrl ? (
+                                        <li className="message-image"> 
+                                            <img 
+                                                src={`${baseURL}${msg.imageUrl}`} 
+                                                alt="message-photo"
+                                                style={{ maxWidth: '100%', maxHeight: '300px', cursor: 'pointer' }}
+                                                onClick={() => window.open(`${baseURL}${msg.imageUrl}`, '_blank')}
+                                            /> 
+                                        </li> 
+                                    ) : (
+                                        <li data="text">{msg.text}</li>
+                                    )}
                                     <li data="time">{msg.timestamp}</li>
                                 </ul>
                             </div>
@@ -132,7 +268,33 @@ function ChatComponent() {
                     </div>
                 }
             </div>
-            
+            <div className="messages-footer">
+            {imagePreview && (
+                <div className="image-preview-container">
+                    <div className="image-preview">
+                        <img src={imagePreview} alt="Preview" />
+                        <div className="image-preview-info">
+                            {selectedImage?.name}
+                        </div>
+                        <button 
+                            type="button" 
+                            className="cancel-image-btn"
+                            onClick={cancelImage}
+                        >
+                            Отменить
+                        </button>
+                    </div>
+                </div>
+            )}
+            <div className="quick-emojis">
+                <button type="button" onClick={() => setSend(prev => prev + '🤟')} className="quick-emoji">🤟</button>
+                <button type="button" onClick={() => setSend(prev => prev + '👀')} className="quick-emoji">👀</button>
+                <button type="button" onClick={() => setSend(prev => prev + '❤️')} className="quick-emoji">❤️</button>
+                <button type="button" onClick={() => setSend(prev => prev + '🤏')} className="quick-emoji">🤏</button>
+                <button type="button" onClick={() => setSend(prev => prev + '💩')} className="quick-emoji">💩</button>
+                <button type="button" onClick={() => setSend(prev => prev + '☢️')} className="quick-emoji">☢️</button>
+                <button type="button" onClick={() => setSend(prev => prev + '🕑')} className="quick-emoji">🕑</button>
+            </div>
             <div className="container-for-sending-messages">
                 <form onSubmit={handleSubmit} className="send-message-container">
                     <input 
@@ -142,14 +304,27 @@ function ChatComponent() {
                         onChange={(e) => setSend(e.target.value)}
                     />                
                     
-                    <label>
-                        <input type="file"/>
+                    <label className="image-upload-label">
+                        <input 
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageSelect}
+                            style={{ display: 'none' }}
+                        />
+                        <button 
+                            type="button" 
+                            className="image-upload-btn"
+                            onClick={() => document.querySelector('input[type="file"]').click()}
+                        >
+                            📷
+                        </button>
                     </label>
-                    
+                
                     <button type="submit" className="send-btn">
                         <img src="/images/send.png" className="send-img" alt="send-img"/>
                     </button>
                 </form>
+            </div>
             </div>
         </div>
     );
@@ -160,7 +335,6 @@ function Contacts(){
     const [rooms, setRooms] = useState([]);
     const socketRef = useRef(null);
     const { openChat } = useNavigation();
-    const { user } = useAuth();
 
     const inputHandler = (e) => {
         let lowerText = e.target.value.toLowerCase();
@@ -182,7 +356,6 @@ function Contacts(){
                 setRooms(roomsWithIds);
             });
             
-            // Запрашиваем список комнат
             socketRef.current.emit('get rooms');
         }
         
@@ -204,6 +377,10 @@ function Contacts(){
             return el.name.toLowerCase().includes(search);
         }
     });
+
+    // useEffect(()=> {
+        
+    // },[])
 
     return (
         <div className="contacts-containers">
@@ -264,7 +441,7 @@ function ChatContent() {
         if (roomFromUrl && !selectedRoom) {
             openChat(roomFromUrl);
         }
-    }, [location.search]);
+    }, [location.search, openChat, selectedRoom]);
 
     useEffect(() => {
         if (selectedRoom) {
@@ -272,7 +449,7 @@ function ChatContent() {
         } else if (activeTab === 'contacts') {
             navigate('/chat');
         }
-    }, [selectedRoom, navigate]);
+    }, [selectedRoom, navigate, activeTab]);
 
     const renderContent = () => {
         if (activeTab === 'contacts') {
