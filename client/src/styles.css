@@ -5,6 +5,21 @@
     font-family: MontserratMedium;
 }
 
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
 body{
     background-color: var(--primary-color);
 }
@@ -83,6 +98,7 @@ body{
     --secondary-color:#090b12;
     --text-color: #f9f9f9;
     --deep-blue: #276bb9;
+    /* --deep-blue:#057eff; */
     color: #f9f9f9;
 }
 
@@ -100,6 +116,13 @@ body{
 ::-webkit-scrollbar {
     width: 0;
 }
+
+.empty-chat{
+    width: 100%;
+    margin: 10px 0px;
+    text-align: center;
+}
+
 .adaptive-container{
     transition: 0.2s;
     width: auto;

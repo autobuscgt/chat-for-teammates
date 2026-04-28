@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useCallback, useMemo } from 'react';
 
 const NavigationContext = createContext(null);
 
@@ -6,30 +6,30 @@ export function NavigationProvider({ children }) {
     const [activeTab, setActiveTab] = useState('contacts');
     const [selectedRoom, setSelectedRoom] = useState(null);
 
-    const openChat = (roomName) => {
+    const openChat = useCallback((roomName) => {
         setSelectedRoom(roomName);
         setActiveTab('chats');
-    };
+    }, []);
 
-    const closeChat = () => {
+    const closeChat = useCallback(() => {
         setSelectedRoom(null);
         setActiveTab('contacts');
-    };
+    }, []);
 
-    const switchTab = (tab) => {
+    const switchTab = useCallback((tab) => {
         setActiveTab(tab);
         if (tab !== 'chats') {
             setSelectedRoom(null);
         }
-    };
+    }, []);
 
-    const value = {
+    const value = useMemo(() => ({
         activeTab,
         selectedRoom,
         openChat,
         closeChat,
         switchTab
-    };
+    }), [activeTab, selectedRoom, openChat, closeChat, switchTab]);
 
     return (
         <NavigationContext.Provider value={value}>
