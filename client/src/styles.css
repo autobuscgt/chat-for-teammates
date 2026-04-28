@@ -196,6 +196,7 @@ body{
     border-radius: 600px;
     padding: 15px;
     background-color: var(--deep-blue);
+    /* background: linear-gradient(45deg, #276bb9,#19477b); */
 }
 
 .message-card{
@@ -238,8 +239,11 @@ body{
 .message-card.yes{
     margin-left: auto;
     color: #f9f9f9;
+    /* background: -webkit-linear-gradient(90deg, #276bb9,#121260); */
     background-color: var(--deep-blue);
+    /* background: linear-gradient(45deg, #276bb9,#19477b); */
 }
+    
 .message-card.no{
     margin-right: auto;
     background-color: #f9f9f928;

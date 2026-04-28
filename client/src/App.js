@@ -1,6 +1,7 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { routes } from './utils/routes';
 import { NavigationProvider } from './context/NavigationContext';
+import { HOME_ROUTE } from './utils/consts';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
               <Route key={item.component} path={item.path} Component={item.component}/>
             ))
             }
+            <Route path='*' element={<Navigate to={"/contacts"}/>}/>
           </Routes>
         </div>
         </NavigationProvider>

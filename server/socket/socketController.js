@@ -87,7 +87,7 @@ class SocketConnection {
     }
 
     async handleChatMessage(socket, msgData, io) {
-        const { text, room, timestamp } = msgData;
+        const { text, room, timestamp, type = 'text' } = msgData;
         console.log(`Сообщение: ${text}, Комната: ${room}, Пользователь: ${socket.user.login}`);
         if (!roomMessages.has(room)) {
             roomMessages.set(room, []);
@@ -99,11 +99,16 @@ class SocketConnection {
             timestamp: timestamp,
             userId: socket.user.id,
             user: socket.user.login,
-            type: 'text'
+            type: type
         };
         
         const currentMessages = roomMessages.get(room);
+        
         currentMessages.push(newMessage);
+                if (currentMessages.length > 1000) {
+            currentMessages.shift();
+        }
+
         roomMessages.set(room, currentMessages);
 
         io.to(room).emit('chat message', currentMessages);

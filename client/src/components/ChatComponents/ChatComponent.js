@@ -114,7 +114,13 @@ function ChatComponent({ onClose }) {
                 
             case '/help':
                 const helpMessage = {
-                    text: 'Доступные команды:\n/help - показать это сообщение\n/clear - очистить чат\n/users - показать список пользователей',
+                    text: `Доступные команды:\n
+                    /help - показать это сообщение\n
+                    /clear - очистить чат\n
+                    /users - показать список пользователей\n
+                    /me - сделать какое-то действие от своего лица\n
+                    /roll - подбросить кубик\n
+                    `,
                     timestamp: new Date().toLocaleString(),
                     user: 'System',
                     userId: 'system',
@@ -122,11 +128,51 @@ function ChatComponent({ onClose }) {
                 };
                 setMessages(prev => [...prev, helpMessage]);
                 return true;
-                
+            
+            case '/me':
+                const actionMessage = {
+                    text: `${user.login}* ${args}`,
+                    timestamp: new Date().toLocaleString(),
+                    user: user.login,
+                    userId: user.id,
+                    type: 'action'
+                };
+                socketRef.current.emit('chat message', {
+                    text: actionMessage.text,
+                    room: params?.room,
+                    timestamp: new Date().toISOString(),
+                    userId: user.id,
+                    user: user.login,
+                    type: 'action'
+                });
+                return true;
+
             case '/users':
                 socketRef.current.emit('get users', params?.room);
                 return true;
                 
+            case '/roll':
+                const max =  6;
+                const result = Math.floor(Math.random() * max) + 1;
+                const rollMessage = {
+                    text: `${user.nickname || user.login} бросил кубик и выпало: ${result} из ${max}`,
+                    timestamp: new Date().toLocaleString(),
+                    user: user.login,
+                    userId: user.id,
+                    type: 'roll'
+                };
+                socketRef.current.emit('chat message', {
+                    text: rollMessage.text,
+                    room: params?.room,
+                    timestamp: new Date().toISOString(),
+                    userId: user.id,
+                    user: user.login,
+                    type: 'roll'
+                });
+                return true;
+            
+            case '/':
+
             default:
                 return false;
         }
@@ -327,7 +373,7 @@ function ChatComponent({ onClose }) {
                     <form onSubmit={handleSubmit} className="send-message-container">
                         <input 
                             className="text-input"
-                            placeholder="Введите сообщение..." 
+                            placeholder="Введите сообщение или команду (/help)..." 
                             value={send} 
                             onChange={(e) => setSend(e.target.value)}
                         />                
