@@ -4,6 +4,11 @@ const roomUsers = {};
 const path = require('path');
 const fs = require('fs');
 
+const { User } = require('../models/User');
+const { Message } = require('../models/Message');
+const { Room } = require('../models/Room');
+const { RoomParticipant } = require('../models/RoomParticipant');
+
 const imagesDir = path.join(__dirname, '../assets/images');
 
 if (!fs.existsSync(imagesDir)) {
@@ -12,14 +17,23 @@ if (!fs.existsSync(imagesDir)) {
 
 class SocketConnection {
     async handleConnection(socket, io) {
+        const ip_address = socket.handshake.address;    
+
+        await this.loadPublicRooms;
+        await this.loadPrivateRooms;
+
         console.log('user connected');
-        console.log(`user ${socket.user.login} connected`);
+        console.log(`user ${socket.user.login} connected\nip: ${ip_address}`);
 
         socket.emit('rooms list', Array.from(roomMessages.keys()));
 
         socket.on('join', ({ room, user }) => {
             this.handleJoinRoom(socket, room, io);
         });
+
+        socket.on('create room', (data)=> {
+            this.handleCreateRoom(socket, data, io)
+        })
 
         socket.on('chat message', async (msgData) => {
             this.handleChatMessage(socket, msgData, io);
@@ -49,19 +63,7 @@ class SocketConnection {
             console.log('user disconnected');
             this.handleDisconnect(socket, io);
         });
-
-        // socket.on('durov', async () => {
-        //     this.handleDurov(socket, io)
-        // })
     }
-    // async handleDurov(socket){
-    //     const newMessage = {
-    //         id: Date.now(),
-    //         text: 'ПАВЕЛ ДУРОВ',
-    //         type: 'text'
-    //     };
-    //     socket.emit('chat message', newMessage);
-    // }
 
     async handleJoinRoom(socket, room, io) {
         socket.join(room);
@@ -84,7 +86,7 @@ class SocketConnection {
         });
 
         io.to(room).emit('users in room', Array.from(roomUsers[room].values()));
-    }
+    } 
 
     async handleChatMessage(socket, msgData, io) {
         const { text, room, timestamp, type = 'text' } = msgData;
@@ -189,6 +191,8 @@ class SocketConnection {
     async handleGetRooms(socket) {
         socket.emit('rooms list', Array.from(roomMessages.keys()));
     }
+    
+    // Добавление функций начинающихся на / в чате
 
     async handleClearChat(socket, data, io) {
         const { room, userId } = data;
@@ -242,26 +246,101 @@ class SocketConnection {
             io.to(room).emit('chat message', currentMessages);
         }
     }
-    
-    async handleChangeColor(socket, data, io) {
-        const { room, userId, color } = data;
-        
-        const message = {
-            id: Date.now(),
-            text: `${socket.user.login} изменил цвет ника на ${color}`,
-            timestamp: new Date().toISOString(),
-            userId: 'system',
-            user: 'System',
-            type: 'text'
-        };
-        
-        if (roomMessages[room]) {
-            const currentMessages = roomMessages.get(room);
-            currentMessages.push(message);
-            roomMessages.set(room, currentMessages);
-            io.to(room).emit('chat message', currentMessages);
+
+    // Добавление БД
+
+    async loadPublicRooms(socket){
+        try {
+            const publicRooms = Room.findAll({where:{type:'public'}});
+            const roomNames = publicRooms.map(room => room.name);
+            socket.emit('rooms list', roomNames);
+        } catch (error) {
+            console.log(error);
+        }
+
+    }
+
+    async loadPrivateRooms(socket){
+        try {
+            const privateRooms = Room.findAll({where:{type:'private'},                 
+            include: [{
+                model: RoomParticipant,
+                where: { userId: socket.user.id, isActive: true },
+                required: true
+            }]
+            });
+            const roomNames = privateRooms.map(room => room.name);
+            socket.emit('private rooms list', roomNames);
+        } catch (error) {
+            console.log(error);
         }
     }
+
+    async handleCreateRoom(socket, data, io){
+        try 
+        {
+            const { name, type = 'public', password = null } = data;
+            const existingRoom = await Room.findOne({ where: { name } });
+            if (existingRoom) {
+                socket.emit('error', { message: 'Комната с таким именем уже существует' });
+                return;
+            }
+
+            const newRoom = await Room.create({
+                name,
+                type,
+                password: type === 'private' ? password : null,
+                userId: socket.user.id
+            });
+
+            if (type === 'private') {
+                await RoomParticipant.create({
+                    roomId: newRoom.id,
+                    userId: socket.user.id
+                });
+            }
+
+            socket.emit('room created', { 
+                name, 
+                type, 
+                message: `Комната ${name} успешно создана` 
+            });
+
+            await this.loadPublicRooms(socket);
+            await this.loadUserPrivateRooms(socket);
+            // await this.handleJoinRoom(socket, name, password, io);
+        } 
+        catch (error) 
+        {
+            console.log(error);
+        }
+    }
+
+    // async handleJoinRoom(socket, room, password, io) {
+    //     socket.join(room);
+    //     socket.room = room;
+    //     console.log(`user ${socket.user.login} (${socket.id}) joined room: ${room}`);
+
+    //     if (!roomUsers[room]) {
+    //         roomUsers[room] = new Map();
+    //     }
+
+    //     roomUsers[room].set(socket.id, {
+    //         id: socket.user.id,
+    //         login: socket.user.login
+    //     });
+
+    //     const messages = roomMessages.get(room) || [];
+    //     socket.emit('chat message', messages);
+    //     socket.emit('message', {
+    //         message: `Приветствую в комнате ${room}`
+    //     });
+
+    //     io.to(room).emit('users in room', Array.from(roomUsers[room].values()));
+    // }
+    
+    
+
 }
 
 module.exports = new SocketConnection();

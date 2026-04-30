@@ -5,6 +5,4 @@ export const HOME_ROUTE = '/contacts'
 export const JOIN_ROOM_ROUTE = '/join'
 
 // export const baseURL = 'https://tppbtl5t-7000.euw.devtunnels.ms'
-export const baseURL = 'https://bxb3fnr8-7000.euw.devtunnels.ms'
-// export const baseURL = 'https://721rlgr3-7000.euw.devtunnels.ms'
-// export const baseURL = 'http://localhost:7000'
+export const baseURL = 'http://localhost:7000'
