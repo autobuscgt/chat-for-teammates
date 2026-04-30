@@ -55,12 +55,21 @@ function Contacts(){
         <div className="contacts-containers">
             <ul>
                 <li> 
+                <label style={{width:'100%',position:'relative'}}>
                     <input 
                         placeholder="Поиск..."
                         onChange={inputHandler}
                         value={search}
+                        // type='search'
                         className="search-container"
                     /> 
+                    <img
+                        className='search-input-icon'
+                        src='/images/search-input.svg'
+                        alt='search-icon'
+                    />
+                </label>
+
                 </li>
                 {filteredData.map((msg)=> (
                     <li key={msg.id}> 
