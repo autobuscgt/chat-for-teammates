@@ -1,5 +1,6 @@
 // MessageController.js
 const { Message } = require("../models/Message");
+const { Room } = require("../models/Room");
 const { User } = require("../models/User");
 
 class MessageController {
@@ -18,6 +19,7 @@ class MessageController {
             return res.status(500).json({ error: "Ошибка сервера" });
         }
     }
+    
 
     async getAll(req, res) {
         try {
@@ -38,7 +40,7 @@ class MessageController {
     }
 
     async getMessageByRoom(req,res){
-        const {roomId} = req.params;
+        const { roomId } = req.params;
         const { limit = 50, offset = 0 } = req.query;
 
         const messages = await Message.findAndCountAll({
@@ -62,20 +64,33 @@ class MessageController {
 
     async createMessage(req, res) {
         try {
-            const { userId, text, file, roomId } = req.body;
+            // const {  } = req.params;
+            const { 
+                    userId, 
+                    roomId, 
+                    text, 
+                    type } = req.body;
             
             if (!text) {
                 return res.status(400).json({ error: "Текст сообщения обязателен" });
             }
+
+            const user = await User.findByPk(userId)
             
-            const message = await Message.create({ userId, text, file, roomId });
-            const user = await User.findByPk(userId);
+            const message = await Message.create({ 
+                userId, 
+                roomId, 
+                text, 
+                timestamp: Date.now(), 
+                type: type || 'text' });
+
             return res.status(201).json({
-                id:message.id,
+                id:message.id,  
                 text:message.text,
                 userId:message.userId,
                 roomId:message.roomId,
                 userLogin: user?.login,
+                user
             });
         } catch (error) {
             console.error(error);

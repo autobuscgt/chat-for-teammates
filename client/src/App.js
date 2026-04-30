@@ -2,8 +2,13 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { routes } from './utils/routes';
 import { NavigationProvider } from './context/NavigationContext';
 import { HOME_ROUTE } from './utils/consts';
+import { useAuth } from './hooks/useAuth';
+
+
 
 function App() {
+  const {user} = useAuth();
+  const isLogin = user;
   return (
       <Router>
         <NavigationProvider>
@@ -13,7 +18,13 @@ function App() {
               <Route key={item.component} path={item.path} Component={item.component}/>
             ))
             }
-            <Route path='*' element={<Navigate to={"/contacts"}/>}/>
+            {isLogin ? (
+            <Route path= '*' element={<Navigate to={"/contacts"}/>}/> 
+            ): (
+            <Route path= '*' element={<Navigate to={"/register"}/>}/>
+            )
+            }
+            
           </Routes>
         </div>
         </NavigationProvider>

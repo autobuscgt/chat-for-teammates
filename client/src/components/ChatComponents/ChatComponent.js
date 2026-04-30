@@ -152,7 +152,7 @@ function ChatComponent({ onClose }) {
                 return true;
                 
             case '/roll':
-                const max =  6;
+                const max = (args) || 6;
                 const result = Math.floor(Math.random() * max) + 1;
                 const rollMessage = {
                     text: `${user.nickname || user.login} бросил кубик и выпало: ${result} из ${max}`,

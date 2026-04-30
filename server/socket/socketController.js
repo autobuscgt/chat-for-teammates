@@ -9,6 +9,8 @@ const { Message } = require('../models/Message');
 const { Room } = require('../models/Room');
 const { RoomParticipant } = require('../models/RoomParticipant');
 
+const roomController = require('../controllers/roomController');
+
 const imagesDir = path.join(__dirname, '../assets/images');
 
 if (!fs.existsSync(imagesDir)) {
@@ -17,7 +19,7 @@ if (!fs.existsSync(imagesDir)) {
 
 class SocketConnection {
     async handleConnection(socket, io) {
-        const ip_address = socket.handshake.address;    
+        const ip_address = socket.handshake.address.address;    
 
         await this.loadPublicRooms;
         await this.loadPrivateRooms;
@@ -107,7 +109,7 @@ class SocketConnection {
         const currentMessages = roomMessages.get(room);
         
         currentMessages.push(newMessage);
-                if (currentMessages.length > 1000) {
+        if (currentMessages.length > 1000) {
             currentMessages.shift();
         }
 
@@ -254,6 +256,7 @@ class SocketConnection {
             const publicRooms = Room.findAll({where:{type:'public'}});
             const roomNames = publicRooms.map(room => room.name);
             socket.emit('rooms list', roomNames);
+            console.log(roomNames);
         } catch (error) {
             console.log(error);
         }
@@ -268,14 +271,17 @@ class SocketConnection {
                 where: { userId: socket.user.id, isActive: true },
                 required: true
             }]
-            });
+            }); 
             const roomNames = privateRooms.map(room => room.name);
             socket.emit('private rooms list', roomNames);
         } catch (error) {
             console.log(error);
         }
     }
-
+    /* 
+        private rooms list 
+        rooms list
+    */
     async handleCreateRoom(socket, data, io){
         try 
         {
@@ -307,7 +313,7 @@ class SocketConnection {
             });
 
             await this.loadPublicRooms(socket);
-            await this.loadUserPrivateRooms(socket);
+            // await this.loadUserPrivateRooms(socket);
             // await this.handleJoinRoom(socket, name, password, io);
         } 
         catch (error) 
@@ -315,30 +321,6 @@ class SocketConnection {
             console.log(error);
         }
     }
-
-    // async handleJoinRoom(socket, room, password, io) {
-    //     socket.join(room);
-    //     socket.room = room;
-    //     console.log(`user ${socket.user.login} (${socket.id}) joined room: ${room}`);
-
-    //     if (!roomUsers[room]) {
-    //         roomUsers[room] = new Map();
-    //     }
-
-    //     roomUsers[room].set(socket.id, {
-    //         id: socket.user.id,
-    //         login: socket.user.login
-    //     });
-
-    //     const messages = roomMessages.get(room) || [];
-    //     socket.emit('chat message', messages);
-    //     socket.emit('message', {
-    //         message: `Приветствую в комнате ${room}`
-    //     });
-
-    //     io.to(room).emit('users in room', Array.from(roomUsers[room].values()));
-    // }
-    
     
 
 }
