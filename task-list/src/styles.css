@@ -1,0 +1,91 @@
+* {
+    margin: 0px;
+    padding: 0px;
+}
+
+@font-face {
+    font-family: MM;
+    src: url('./assets/font/Montserrat-Medium.ttf');
+}
+
+@font-face {
+    font-family: MB;
+    src: url('./assets/font/Montserrat-Bold.ttf');
+}
+
+:root{
+    --purple-color: #6966FF;
+    --text-color: #161617;
+    --description-color: #DDDDDD;
+    --checkbox-color: #FFC966;
+}
+
+.App{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.header-container{
+    max-width: 700px;
+    display: grid;
+    grid-template-columns: auto 80%;
+    grid-template-rows: repeat(2, 1fr);
+    height: auto;    
+    
+}
+
+.logo{
+    background: #6864FF;
+    background: linear-gradient(180deg, #6864FF, #9E9CFF);
+    height: 200px;
+    width: 200px;
+    border-radius: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: MM;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.header-container-block-1{
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+    height: 200px;
+    border-radius: 25px;
+}
+.header-container-block-2{
+    grid-column: 1/4;    
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+    height: 200px;
+    border-radius: 25px;
+}
+
+.tasks-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.task-card{
+    max-width: 90%;
+    min-width: 300px;
+    margin: 10px 0px;
+    height: auto;
+    font-family: MM;
+    color: var(--text-color);
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+    border-radius: 25px;
+    padding: 15px;
+}
+
+.task-card p{
+    color: var(--description-color);
+    border-left: 4px solid var(--purple-color);
+    min-height: 60px;
+    padding: 10px;
+}
+
