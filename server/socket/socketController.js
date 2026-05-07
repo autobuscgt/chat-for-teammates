@@ -19,13 +19,8 @@ if (!fs.existsSync(imagesDir)) {
 
 class SocketConnection {
     async handleConnection(socket, io) {
-        const ip_address = socket.handshake.address.address;    
-
         await this.loadPublicRooms;
         await this.loadPrivateRooms;
-
-        console.log('user connected');
-        console.log(`user ${socket.user.login} connected\nip: ${ip_address}`);
 
         socket.emit('rooms list', Array.from(roomMessages.keys()));
 
@@ -65,12 +60,21 @@ class SocketConnection {
             console.log('user disconnected');
             this.handleDisconnect(socket, io);
         });
+
+    socket.on('ban-user', (userIdToBan) => {
+    const targetSocket = findSocketByUserId(userIdToBan);
+    
+    if (targetSocket) {
+        targetSocket.disconnect(true);
+        console.log(`Пользователь ${userIdToBan} был отключен.`);
+    }
+});
     }
 
     async handleJoinRoom(socket, room, io) {
         socket.join(room);
         socket.room = room;
-        console.log(`user ${socket.user.login} (${socket.id}) joined room: ${room}`);
+        console.log(`user ${socket.user.login} (${socket.id}) joined room: ${room}, ip: ${socket.handshake.address}`);
 
         if (!roomUsers[room]) {
             roomUsers[room] = new Map();
@@ -210,7 +214,7 @@ class SocketConnection {
                 id: Date.now(),
                 text: `Чат был очищен пользователем ${socket.user.login}`,
                 timestamp: new Date().toISOString(),
-                userId: 'system',
+                userId: userId||'system',
                 user: 'System',
                 type: 'system'
             };
@@ -257,6 +261,7 @@ class SocketConnection {
             const roomNames = publicRooms.map(room => room.name);
             socket.emit('rooms list', roomNames);
             console.log(roomNames);
+            console.log(publicRooms);
         } catch (error) {
             console.log(error);
         }
@@ -278,10 +283,20 @@ class SocketConnection {
             console.log(error);
         }
     }
+
+    async loadMessages(roomName){
+        const room = await Room.findOne({where:{roomName}});
+        const messages = await Message.findAll({
+            where:{roomId: room.id},
+        })
+        return messages;
+    }
+
     /* 
         private rooms list 
         rooms list
     */
+
     async handleCreateRoom(socket, data, io){
         try 
         {

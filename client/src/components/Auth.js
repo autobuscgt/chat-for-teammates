@@ -6,6 +6,8 @@ import { login, register } from "../http/userAPI";
 function Auth() {
 const [userLogin, setUserLogin] = useState('');
 const [userPassword, setUserPassword] = useState('');
+const [error, setError] = useState('');
+
 const location = useLocation();
 const isLogin = location.pathname === LOGIN_ROUTE;
 
@@ -18,16 +20,24 @@ const userData = {
 
 const handleSubmit = async() => {
     if(isLogin) {
-        const data = await login(userData)
-        if(data.token) {
-            navigate('/join')
+        try {
+            const data = await login(userData)
+            if(data.token) {
+                navigate('/join')
+            }
+        } catch (error) {
+            setError(error.status)
         }
     } else {
-        const data = await register(userData)
-
-        if(data.token) {
-            navigate('/join')
+        try {
+            const data = await register(userData)
+            if(data.token) {
+                navigate('/join')
+            }
+        } catch (error) {
+            setError(error.status)
         }
+       
     }
 }
 
@@ -52,6 +62,7 @@ const handleSubmit = async() => {
                     <a href={isLogin ? '/register' : '/login'} className="toggle-link">
                         {isLogin ? 'Нет аккаунта?' : 'Войти' }
                     </a>
+                    <p>Статус: {error}</p>
                 <button onClick={handleSubmit} className="submit-btn">{isLogin ? 'Войти' : 'Зарегистрироваться'}</button>
             </div>
         </div>
